@@ -1,9 +1,11 @@
+// Middlewares
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
+// Importing Routes
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 const campsiteRouter = require('./routes/campsiteRouter');
@@ -24,6 +26,7 @@ connect.then(() => console.log('Connected correctly to server'),
   err => console.log(err)
 );
 
+// Using express middleware framework
 var app = express();
 
 // view engine setup

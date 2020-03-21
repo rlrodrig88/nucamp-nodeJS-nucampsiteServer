@@ -1,8 +1,8 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 
-const partnerRouter = express.Router();
 
+const partnerRouter = express.Router();
 
 partnerRouter.use(bodyParser.json());
 

@@ -18,7 +18,6 @@ exports.getToken = user => {
 const opts = {};
 opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
 opts.secretOrKey = config.secretKey;
-
 exports.jwtPassport = passport.use(
   new JwtStrategy(
     opts,
@@ -37,4 +36,15 @@ exports.jwtPassport = passport.use(
   )
 );
 
+// token will be included in the auth. header (line: 19)
+// will always return a req.user
 exports.verifyUser = passport.authenticate('jwt', {session: false});
+
+exports.verifyAdmin = ((req, res, next) => {
+  console.log(`${req.user.username} is admin? ${req.user.admin}`);
+  if (req.user.admin === false) {
+    const err = new Error('You are not authorized to perform this operation!')
+    res.statusCode = 403;
+    return next(err);
+  } else return next();
+});

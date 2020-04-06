@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const passportLocalMongoose = require('passport-local-mongoose');
 const Schema = mongoose.Schema;
 
 require('mongoose-currency').loadType(mongoose);
@@ -51,6 +52,6 @@ const campsiteSchema = new Schema({
   timestamps: true
 });
 
-const Campsite = mongoose.model('Campsite', campsiteSchema);
+campsiteSchema.plugin(passportLocalMongoose);
 
-module.exports = Campsite;
+module.exports = mongoose.model('Campsite', campsiteSchema);

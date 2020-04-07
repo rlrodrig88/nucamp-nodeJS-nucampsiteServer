@@ -71,16 +71,30 @@ favoriteRouter.route(`/:campsiteId`)
   })
 
   .post(cors.corsWithOptions, authenticate.verifyUser, (req, res) => {
-    Favorite.findByIdAndUpdate(req.params.campsiteId, {
-      $set: req.body
-    }, { new: true })
+    Favorite.findOne({user: req.user._id })  // Find current users favorites
     .then(favorite => {
-      res.statusCode = 200;
-      res.setHeader('Content-Type', 'application/json');
-      res.json(favorite);
-    })
-    .catch(err => next(err));     
-  })
+      if (favorite) {     // check if user currently has any favorites
+        if (favorite.campsites.every(el => req.params.campsiteId != el)) {
+          favorite.campsites.push(req.params.campsiteId);    // no duplicates, add campsite to favorites list
+        } else console.log(`${reqEl._id} already in the list of favorites!`);       
+        favorite.save()   // update favorites document in db
+        .then(favorite => {
+          res.statusCode = 200;
+          res.setHeader('Content-Type', 'application/json');
+          res.json(favorite);
+        }, (err) => next(err));
+      }
+      else {          // user has no favorites, create new favorite document
+        Favorite.create({"user": req.user._id, "campsites": [req.params.campsiteId]})
+        .then(favorite => {
+          res.statusCode = 200;
+          res.setHeader('Content-Type', 'application/json');
+          res.json(favorite);
+        }, (err) => next(err));
+      }
+    }, (err) => next(err))   
+    .catch(err => next(err));  
+ })
 
   .put(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
     res.statusCode = 403
@@ -88,13 +102,23 @@ favoriteRouter.route(`/:campsiteId`)
   })
 
   .delete(cors.corsWithOptions, authenticate.verifyUser, (req, res) => {
-    Favorite.findByIdAndDelete(req.params.campsiteId)
-    .then(response => {
+    Favorite.findOne({user: req.user._id })  // Find current users favorites
+    .then(favorite => {
+      let indexToDelete = favorite.campsites.findIndex(el => el == req.params.campsiteId);
+      if (indexToDelete = null) {
+        console.log(`${req.params.campsiteId} is not in the list of favorites!`);
+      } else { 
+        favorite.campsites = favorite.campsites.slice(indexToDelete);
+        console.log(`${req.params.campsiteId} has been removed.`)
+        console.log(favorite.campsites);
+      }  
+    });
+    favorite.save()   // update favorites document in db
+    .then(favorite => {
       res.statusCode = 200;
       res.setHeader('Content-Type', 'application/json');
-      res.json(response);
-    })
-    .catch(err => next(err));           
+      res.json(favorite);
+    }, (err) => next(err));
   });
 
  module.exports = favoriteRouter;

@@ -104,25 +104,27 @@ favoriteRouter.route(`/:campsiteId`)
   .delete(cors.corsWithOptions, authenticate.verifyUser, (req, res) => {
     Favorite.findOne({user: req.user._id })  // Find current users favorites
     .then(favorite => {
-      console.log(`Favorite campsites is type: ${typeof favorite.campsites}`);
-      let indexToDelete = favorite.campsites.indexOf(req.params.campsiteId);
-      console.log(`Index to delete: ${indexToDelete}`);
-      if (indexToDelete = null) {
-        console.log(`${req.params.campsiteId} is not in the list of favorites!`);
-      } else { 
-        console.log(`Campsite to delete: ${req.params.campsiteId}`);
-        console.log(`Types: ${typeof req.params.campsiteId}, ${typeof favorite.campsites}, and ${typeof indexToDelete}`);
-        favorite.campsites.splice(indexToDelete, 1);
-        console.log(favorite.campsites);
-        console.log(`${req.params.campsiteId} has been removed.`)
-        favorite.save()   // update favorites document in db
-        .then(favorite => {
-          res.statusCode = 200;
-          res.setHeader('Content-Type', 'application/json');
-          res.json(favorite);
-        }, (err) => next(err));
+      if (favorite) {
+        let indexToDelete = favorite.campsites.indexOf(req.params.campsiteId);
+        if (indexToDelete < 0 ) {
+          console.log(`${req.params.campsiteId} is not in the list of favorites!`);
+        } else { 
+          favorite.campsites.splice(indexToDelete, 1);  // delete favorite
+          favorite.save()   // update favorites document in db
+          .populate('user')
+          .populate('favorites.campsites')
+          .then(favorite => {
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.json(favorite);
+          }, (err) => next(err));
+        } 
+      } else {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(favorites);
       }  
-    });
-  });
+    }).catch(err => next(err)); 
+});
 
  module.exports = favoriteRouter;
